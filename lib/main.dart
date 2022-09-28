@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:untitled/Models/getclass.dart';
 
 import 'api.dart';
 
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return  MultiProvider(
+    return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ApiDB()),
       ],
@@ -57,6 +58,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  late Future<Model> incomingDetails;
 
   void _incrementCounter() {
     setState(() {
@@ -70,42 +72,41 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    incomingDetails = ApiDB().get();
+    super.initState();
+
+    ///whatever you want to run on page build
+  }
+
+  @override
   Widget build(BuildContext context) {
-   var data = Provider.of<ApiDB>(context);
+    var data = Provider.of<ApiDB>(context);
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text(
+          widget.title,
+        ),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        width: double.infinity,
+        child: FutureBuilder<Model>(
+          future: ApiDB().get(),
+          builder: (context, snapshot) {
+            return ListView.builder(
+                itemCount: snapshot.data!.data!.length,
+                itemBuilder: (context, i) {
+                  final info = snapshot.data!.data!;
+                  return ListTile(
+                    title: Text(info[i].name!),
+                    subtitle: Text(info[i].year.toString()),
+                    leading: Text(info[i].pantoneValue.toString()),
+                  );
+                });
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
